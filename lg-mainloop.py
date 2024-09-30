@@ -32,7 +32,7 @@ def count_words(text):
 def insert_draft_into_sanity(content, platform):
     """Stub function to insert drafts into Sanity.io."""
     print(f"Inserting draft for {platform}: {count_words(content)} words")
-    
+
     # Simulate a successful insertion
     return {"status": "success", "id": "draft123"}
 
@@ -50,8 +50,10 @@ def save_content(t: str):
         Insert text content into Sanity.io for review and platform distribution.
         This function uploads the content to Sanity for both Substack and X platforms.
     """
-    insert_draft_into_sanity(t, platform='Substack')
-    insert_draft_into_sanity(t, platform='X')
+    stripped_content = t.replace("#","").replace("*","")
+    print(f"Saving content: {stripped_content}")
+    insert_draft_into_sanity(stripped_content, platform='Substack')
+    insert_draft_into_sanity(stripped_content, platform='X')
 
 
 def x_post():
@@ -85,7 +87,6 @@ def should_continue(state: MessagesState) -> Literal["tools", END]:
     messages = state['messages']
     last_message = messages[-1]
     print('should continue')
-    print(last_message.tool_calls)
     # If the LLM makes a tool call, then we route to the "tools" node
     if last_message.tool_calls:
         return "tools"
