@@ -6,26 +6,8 @@ export const postType = defineType({
   type: 'document',
   fields: [
     defineField({
-      name: 'authorType',
-      type: 'reference',
-      to: [{type: 'author'}],
-    }),
-    defineField({
-      name: 'eventType',
-      type: 'reference',
-      to: [{type: 'event'}],
-    }),
-    defineField({
-      name: 'date',
-      type: 'datetime',
-    }),
-    defineField({
       name: 'header',
       type: 'string',
-    }),
-    defineField({
-      name: 'image',
-      type: 'image',
     }),
     defineField({
       name: 'body',
@@ -33,8 +15,20 @@ export const postType = defineType({
       of: [{type: 'block'}],
     }),
     defineField({
-      name: 'link',
+      name: 'response',
+      type: 'markdown'
+    }),
+    defineField({
+      name: 'date',
+      type: 'datetime',
+    }),
+    defineField({
+      name: 'cta',
       type: 'url',
     }),
+    defineField({
+      name: 'image',
+      type: 'image',
+    })
   ],
 })

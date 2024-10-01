@@ -52,21 +52,21 @@ token = "sklJepUmCSdZc5PUkQQr0gTQL0e3dN2kIapGB1bHykyTNrsXJz6V95Gj53woI2c54Gq5r7F
 # Define a new document to insert
 document = {
     "_type": "post",
-    "header": "My New Blog Post",
-    "authorType": "Danny Lieberman",
-    "eventType" : "X Post",
-    "date" : "2024-10-01 14:42",
+    "header": "test post 45",
     "body":[
         {
             "_type": "block",
+            "_key": "43",
             "children": [
                 {
                     "_type": "span",
-                    "text": "This is the content of the blog post."
+                    "text": "This is the content of the blog post 45.",
                 }
             ]
         }
-      ]
+      ],
+    "date": "2024-10-01 16:36",
+    "cta": "https://dannylieberman.com/waitlist"
     }
 
 # Insert the document into the Sanity Content Lake
