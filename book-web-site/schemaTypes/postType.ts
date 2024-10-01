@@ -27,7 +27,7 @@ export const postType = defineType({
       name: 'image',
       type: 'image',
     }),
-defineField({
+    defineField({
       name: 'body',
       type: 'array',
       of: [{type: 'block'}],
