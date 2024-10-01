@@ -50,10 +50,9 @@ def save_content(t: str):
         Insert text content into Sanity.io for review and platform distribution.
         This function uploads the content to Sanity for both Substack and X platforms.
     """
-    stripped_content = t.replace("#","").replace("*","")
-    print(f"Saving content: {stripped_content}")
-    insert_draft_into_sanity(stripped_content, platform='Substack')
-    insert_draft_into_sanity(stripped_content, platform='X')
+    print(f"Saving content: {t}")
+    insert_draft_into_sanity(t, platform='Substack')
+    insert_draft_into_sanity(t, platform='X')
 
 
 def x_post():
