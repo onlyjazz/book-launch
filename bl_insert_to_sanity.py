@@ -50,21 +50,23 @@ dataset = "production"
 token = "sklJepUmCSdZc5PUkQQr0gTQL0e3dN2kIapGB1bHykyTNrsXJz6V95Gj53woI2c54Gq5r7FTOQSaeGCzgNLBtBLKl2G2Ycz23zlmz6OEFcME8rZRuqCByvZIHtIP30kSIQxPaSsmfzmRijKBSAZUoKuTZNrNWXRj4MeDJxMMeNG8kIAEDwkR"
 
 # Define a new document to insert
+
 document = {
     "_type": "post",
-    "header": "test post 45",
-    "body":[
+    "header": "Test 46 Fighting Tech Burnout: Strategies for Sustainable Productivity",
+    "response":"**Set Clear Boundaries:** Establish defined working hours and stick to them. Avoid checking emails or work messages outside these hours to create a clear separation between work and personal life.**",
+    "body": [
         {
             "_type": "block",
-            "_key": "43",
+            "_key": "46",
             "children": [
                 {
                     "_type": "span",
-                    "text": "This is the content of the blog post 45.",
+                    "text": "**Set Clear Boundaries:** Establish defined working hours and stick to them. Avoid checking emails or work messages outside these hours to create a clear separation between work and personal life.",
                 }
             ]
         }
-      ],
+    ],
     "date": "2024-10-01 16:36",
     "cta": "https://dannylieberman.com/waitlist"
     }
