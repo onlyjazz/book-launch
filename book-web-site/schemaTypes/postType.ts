@@ -15,7 +15,7 @@ export const postType = defineType({
       of: [{type: 'block'}],
     }),
     defineField({
-      name: 'response',
+      name: 'markdown_body',
       type: 'markdown'
     }),
     defineField({
