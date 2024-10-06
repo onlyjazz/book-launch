@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 from datetime import datetime
 
-def bl_insert_sanity_document(post_header, post_content):
+def insert_sanity_document(post_header, post_content):
     import json
     import os
     from requests import post
@@ -71,10 +71,3 @@ def bl_insert_sanity_document(post_header, post_content):
         print(f"Failed to insert document: {response.status_code}")
         print(f"Error: {response.text}")
         return None
-
-
-
-# Insert the document into the Sanity Content Lake
-llm_title = "Test 52 Fighting Biotech Burnout: Strategies for Sustainable Productivity"
-llm_text = "**Set Clear Boundaries:** Establish defined working hours and stick to them. Avoid checking emails or work messages outside these hours to create a clear separation between work and personal life."
-bl_insert_sanity_document(llm_title, llm_text)
