@@ -6,7 +6,7 @@ from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
-from bl_sanity_utils import insert_sanity_document
+from bl_sanity_utils import insert_sanity_document, get_system_prompt
 
 # Rev 2 Simplified routing
 # Load environment variables from .env file
@@ -20,12 +20,9 @@ class MultiAgentState(TypedDict):
 
 # ---- Step 1: Define the Sanity.io Stub Functions ----
 def get_latest_prompts_from_sanity():
-    """Retrieve latest prompts from Sanity.io (Stub Function)."""
-    # Simulate getting prompts from Sanity (returns a hard-coded string)
-    p = "What is a great strategy for women over 45 with small children and burnout in tech? Make the response especially attractive for women with good jobs working in biotechnology in the Bay area. Return the prompt in the first line of the post as the title"
+    """Retrieve today's prompt from Sanity.io (Stub Function)."""
+    return get_system_prompt()
 
-    print (f"Prompt is {p}")
-    return p
 
 def count_words(text):
     words = text.split()

@@ -1,10 +1,12 @@
 from dotenv import load_dotenv
 from datetime import datetime
+import requests
+import json
+import os
+from requests import post
+
 
 def insert_sanity_document(post_header, post_content):
-    import json
-    import os
-    from requests import post
     """
     Inserts a new document into the Sanity Content Lake.
 
@@ -21,7 +23,7 @@ def insert_sanity_document(post_header, post_content):
     dataset = os.getenv("SANITY_DATASET")
     token = os.getenv("SANITY_TOKEN")
 
-    url = f"https://{project_id}.api.sanity.io/v2021-06-07/data/mutate/{dataset}"
+    url = f"https://{project_id}.api.sanity.io/v2024-10-05/data/mutate/{dataset}"
 
     # Set up the headers, including the Bearer token
     headers = {
@@ -71,3 +73,33 @@ def insert_sanity_document(post_header, post_content):
         print(f"Failed to insert document: {response.status_code}")
         print(f"Error: {response.text}")
         return None
+
+
+def query_sanity_documents(groq_query):
+    # Construct the Sanity API endpoint
+    # Read the environment variables
+    load_dotenv()
+    project_id = os.getenv("SANITY_PROJECT_ID")
+    dataset = os.getenv("SANITY_DATASET")
+    token = os.getenv("SANITY_TOKEN")
+    url = f"https://{project_id}.api.sanity.io/v2024-10-05/data/query/{dataset}"
+    response = requests.get(url, params={"query": groq_query})
+
+    # Check if the query was successful
+    if response.status_code == 200:
+        print("Document queried successfully!")
+        return response.json()
+    else:
+        print(f"Failed to query document: {response.status_code}")
+        print(f"Error: {response.text}")
+        return None
+
+
+def get_system_prompt():
+    current_date = datetime.now()
+    current_dow = current_date.isoweekday()
+    # Query prompt documents by dow, body is portable text field, return a string
+    query = f'*[_type == "prompt" && dow == {current_dow}]{{"body": pt::text(body)}}'
+    data = query_sanity_documents(query)
+    p = data['result'][0]['body']
+    return p

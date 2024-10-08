@@ -15,8 +15,9 @@ export const postType = defineType({
       of: [{type: 'block'}],
     }),
     defineField({
-      name: 'markdown_body',
-      type: 'markdown'
+      name: 'draft',
+      type: 'array',
+      of: [{type: 'block'}],
     }),
     defineField({
       name: 'date',
@@ -25,6 +26,11 @@ export const postType = defineType({
     defineField({
       name: 'cta',
       type: 'url',
+    }),
+    defineField({
+      name: 'tweet_id',
+      type: 'number',
+      readOnly: true
     }),
     defineField({
       name: 'image',
