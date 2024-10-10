@@ -1,11 +1,9 @@
-from sys import sanity_api_version
-
 from dotenv import load_dotenv
 from datetime import datetime
 import json
 
 from openai import base_url
-from requests import post
+from requests import post, Response
 import os
 import requests
 
@@ -15,12 +13,15 @@ load_dotenv()
 project_id = os.getenv("SANITY_PROJECT_ID")
 dataset = os.getenv("SANITY_DATASET")
 token = os.getenv("SANITY_TOKEN")
-sanity_api_version = os.getenv("SANITY_API_VERSION")
+api_version = os.getenv("SANITY_API_VERSION")
 
-# Function to update a document with the generated tweet_id
 def update_post_tweet(doc_id, tweet_id):
-    # Define the mutation to update the document with the new tweet_id
-    #groq_query = f'*[_type == "post" && _id == "{doc_id}"]' didn't work
+    """
+        Update a single post with tweet_id.
+        :param doc_id:
+        :param tweet_id:
+        :return: 200 or failure and log_response
+    """
     mutation = {
         "mutations": [
             {
@@ -34,23 +35,15 @@ def update_post_tweet(doc_id, tweet_id):
         ]
     }
 
-    # Set up the headers, including the Bearer token for authentication
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {token}"
     }
-    # Make the POST request to apply the mutation
-    url = f"https://{project_id}.api.sanity.io/{sanity_api_version}/data/mutate/{dataset}"
-    response = requests.post(url, json=mutation, headers=headers)
 
-    # Check if the mutation was successful
-    if response.status_code == 200:
-        print(f"Post {doc_id} updated successfully with tweet_id: {tweet_id}")
-        return response.json()
-    else:
-        print(f"Failed to update Post: {response.status_code}")
-        print(f"Error: {response.text}")
-        return None
+    url = f"https://{project_id}.api.sanity.io/{api_version}/data/mutate/{dataset}"
+    response = requests.post(url, json=mutation, headers=headers)
+    log_query_response(' "patch": {"id": doc_id,"set": {"tweet_id": tweet_id}', response)
+    return response.status_code
 
 
 def insert_post(post_header, post_content):
@@ -65,16 +58,10 @@ def insert_post(post_header, post_content):
     """
 
     url = f"https://{project_id}.api.sanity.io/v2024-10-05/data/mutate/{dataset}"
-
-    # Set up the headers, including the Bearer token
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {token}"
     }
-    # Construct the JSON doc from the function arguments
-    # post_content stored in a portable text field and a markdown field
-    # Get the current timestamp and format it as "YYYY-MM-DD HH:MM"
-    current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
     doc = {
         "_type": "post",
         "header": post_header,
@@ -102,7 +89,7 @@ def insert_post(post_header, post_content):
                 ]
             }
         ],
-        "date": current_timestamp,
+        "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "cta": "https://dannylieberman.com/waitlist"
     }
     # Wrap the document in the appropriate payload format
@@ -116,40 +103,19 @@ def insert_post(post_header, post_content):
 
     # Make the POST request to insert the document
     response = post(url, headers=headers, data=json.dumps(payload))
-
-    # Check if the insertion was successful
-    if response.status_code == 200:
-        print("Document inserted successfully!")
-        return response.json()
-    else:
-        print(f"Failed to insert document: {response.status_code}")
-        print(f"Error: {response.text}")
-        return None
+    log_query_response(' "patch": {"create": doc)', response)
+    return {response.status_code}
 
 
 def query_sanity_documents(groq_query):
-    # Construct the Sanity API endpoint
-    # Read the environment variables
-    load_dotenv()
-    project_id = os.getenv("SANITY_PROJECT_ID")
-    dataset = os.getenv("SANITY_DATASET")
-    token = os.getenv("SANITY_TOKEN")
-    url = f"https://{project_id}.api.sanity.io/v2024-10-05/data/query/{dataset}"
-
-    # Set up the headers, including the Bearer token
+    url = f"https://{project_id}.api.sanity.io/{api_version}/data/query/{dataset}"
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {token}"
     }
-    response = requests.get(url, params={"query": groq_query}, headers=headers)
-    # Check if the query was successful
-    if response.status_code == 200:
-        log_query_response(groq_query, response)
-        return response.json()
-    else:
-        print(f"Failed to query document: {response.status_code}")
-        print(f"Error: {response.text}")
-        return None
+    response: Response = requests.get(url, params={"query": groq_query}, headers=headers)
+    log_query_response(groq_query, response)
+    return {response.status_code}
 
 
 def log_query_response(groq_query: str, response: requests.Response) -> None:
@@ -184,8 +150,14 @@ def get_system_prompt():
     p = data['result'][0]['body']
     return p
 
+def get_id_by_header(header):
+    # Query prompt documents by dow, body is portable text field, return a string
+    query = f'*[_type == "post" && header == "{header}"]'
+    data = query_sanity_documents(query)
+    return data['result'][0]['_id']
+
 def select_all(dataType):
     # Select _id and header fom dataType no WHERE clause
-    query = f'*[_type == "{dataType}"] | order(_createdAt desc)[0..1000]{{_id, header, tweet_id}}'
+    query = f'*[_type == "{dataType}"]{{_id, header, tweet_id}}'
     data = query_sanity_documents(query)
-    return  data['result']
+    return  data

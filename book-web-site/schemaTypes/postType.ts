@@ -29,7 +29,7 @@ export const postType = defineType({
     }),
     defineField({
       name: 'tweet_id',
-      type: 'number',
+      type: 'string',
       readOnly: true
     }),
     defineField({
