@@ -115,7 +115,10 @@ def query_sanity_documents(groq_query):
     }
     response: Response = requests.get(url, params={"query": groq_query}, headers=headers)
     log_query_response(groq_query, response)
-    return {response.status_code}
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return response.status_code
 
 
 def log_query_response(groq_query: str, response: requests.Response) -> None:
@@ -138,7 +141,6 @@ def log_query_response(groq_query: str, response: requests.Response) -> None:
         f"Returned Status: {response.status_code} | "
         f"Response Length: {len(response.text)}"
     )
-
     print(log_message)
 
 def get_system_prompt():
@@ -157,7 +159,7 @@ def get_id_by_header(header):
     return data['result'][0]['_id']
 
 def select_all(dataType):
-    # Select _id and header fom dataType no WHERE clause
+    # Select _id and header fom dataType no WHERE clause, returns None if no tweet_id
     query = f'*[_type == "{dataType}"]{{_id, header, tweet_id}}'
     data = query_sanity_documents(query)
-    return  data
+    return  data['result']

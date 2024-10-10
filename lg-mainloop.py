@@ -86,7 +86,7 @@ checkpointer = MemorySaver()
 
 # Compile the graph
 app = workflow.compile(checkpointer=checkpointer)
-print('Starting the book launch app - v 0.3')
+print('Starting the book launch app - v 0.43')
 final_state = app.invoke(
     {"messages": [SystemMessage(content=get_latest_prompts_from_sanity())]},
     config={"configurable": {"thread_id": 42}}
