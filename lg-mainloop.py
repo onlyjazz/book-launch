@@ -6,7 +6,7 @@ from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
-from bl_sanity_utils import insert_sanity_document, get_system_prompt
+from bl_sanity_utils import get_system_prompt, insert_post
 
 # Rev 2 Simplified routing
 # Load environment variables from .env file
@@ -39,7 +39,7 @@ def insert_draft_into_sanity(content):
     print(f"Body: {body}")
     print('--------------------------------------------')
     print(f"Inserting draft: {count_words(content)} words \n Title: {title} \n Body: {body}")
-    insert_sanity_document(title, body)
+    insert_post(title, body)
     # put return code handling here
     return {"status": "success", "id": "draft123"}
 
