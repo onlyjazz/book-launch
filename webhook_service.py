@@ -1,54 +1,39 @@
 from flask import Flask, request, jsonify
 import json
-
+from bl_twitter_utils import post_tweet
+from bl_sanity_utils import update_post_tweet
 # Initialize Flask app
 app = Flask(__name__)
 
+def post_to_x(content: object) -> object:
+    # Parse the incoming Sanity document
+    doc_id= content["_id"]
+    header = content['header']
+    body = content['body'][0]['children'][0]['text']
+    #tweet = header + "\n\n" + body
+    print(f" {doc_id} {header}   {body}")
+    """
+    # Post to X and return the tweet_id
+    x = post_tweet(tweet)
+    tweet_id = x['data']['id']
+    # Update the Sanity document with the tweet_id
+    update_post_tweet_status_code = update_post_tweet(doc_id, tweet_id)
+    print(f"Posting to X {tweet}  {tweet_id}  {update_post_tweet_status_code}")
+    """
 
-# Define your functions here
-def read_from_sanity():
-    # Your function to read data from Sanity
-    print("Reading from Sanity...")
-    return "Sanity data"
-
-
-def post_to_x(content):
-    # Your function to post to X
-    print(f"Posting to X: {content}")
     return "Posted to X"
-
-
-def extract_x_tweet_stats(tweet_id):
-    # Your function to extract X stats
-    print(f"Extracting stats for tweet ID: {tweet_id}")
-    return {"likes": 10, "retweets": 5}
-
 
 # Define the webhook endpoint
 @app.route('/sanity-webhook', methods=['POST'])
 def handle_webhook():
     try:
         # Parse the incoming data
-        data = request.get_json()
+        content = request.get_json()
 
         # Log the incoming webhook data (optional)
-        print("Webhook received: ", json.dumps(data, indent=4))
-
-        # Perform actions based on the webhook data
-        if "trigger" in data:
-            # Example action based on a specific field in your webhook payload
-            if data["trigger"] == "read_sanity":
-                result = read_from_sanity()
-            elif data["trigger"] == "post_x":
-                content = data.get("content", "Default content")
-                result = post_to_x(content)
-            elif data["trigger"] == "extract_x_stats":
-                tweet_id = data.get("tweet_id")
-                result = extract_x_tweet_stats(tweet_id)
-            else:
-                result = "Unknown trigger action"
-
-        return jsonify({"status": "success", "result": result}), 200
+        print("Webhook received: ")
+        res=post_to_x(content)
+        return jsonify({"status": res, "message": 'tweet processed'}), 200
 
     except Exception as e:
         print(f"Error handling webhook: {e}")

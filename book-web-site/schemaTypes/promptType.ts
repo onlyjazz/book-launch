@@ -10,6 +10,10 @@ export const promptType = defineType({
       type: 'string',
     }),
     defineField({
+      name: 'approved',
+      type: 'boolean',
+    }),
+    defineField({
       name: 'body',
       type: 'array',
       of: [{type: 'block'}],

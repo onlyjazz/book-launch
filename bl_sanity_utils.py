@@ -2,7 +2,6 @@ from dotenv import load_dotenv
 from datetime import datetime
 import json
 
-from openai import base_url
 from requests import post, Response
 import os
 import requests
@@ -57,7 +56,7 @@ def insert_post(post_header, post_content):
     - Response from the Sanity API.
     """
 
-    url = f"https://{project_id}.api.sanity.io/v2024-10-05/data/mutate/{dataset}"
+    url = f"https://{project_id}.api.sanity.io/{api_version}/data/mutate/{dataset}"
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {token}"
