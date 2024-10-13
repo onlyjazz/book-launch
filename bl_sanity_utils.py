@@ -5,7 +5,7 @@ import json
 from requests import post, Response
 import os
 import requests
-
+from bl_twitter_utils import post_tweet
 
 # Load environment variables for global reference
 load_dotenv()
@@ -157,8 +157,41 @@ def get_id_by_header(header):
     data = query_sanity_documents(query)
     return data['result'][0]['_id']
 
+def get_post_by_header(header):
+    # Query prompt documents by header
+    # {{_id, header, approved, tweet_id, body: pt::text(body)}}
+    query = f'*[_type == "post" && header == "{header}"]{{_id, header, approved, tweet_id, "body": pt::text(body)}}'
+    data = query_sanity_documents(query)
+    if data == 400:
+       return None
+    else:
+        return data['result'][0]
+
+
 def select_all(dataType):
     # Select _id and header fom dataType no WHERE clause, returns None if no tweet_id
     query = f'*[_type == "{dataType}"]{{_id, header, tweet_id}}'
     data = query_sanity_documents(query)
     return  data['result']
+
+
+def sanity_to_x(content):
+    """
+    :type content: json array with _id header body portable text approved boolean tweet_id
+    """
+    doc_id = content["_id"]
+    header = content['header']
+    approved = content['approved']
+    body = content['body']
+    tweet_id = content['tweet_id']
+    tweet = header + "\n\n" + body
+    if not approved or tweet_id is not None:
+        print('Post was not approved or already tweeted')
+        return 200
+    else:
+        print(f" Approved post {approved} {tweet}  Tweet TBD {tweet_id} ")
+        x = post_tweet(tweet)
+        tweet_id = x['data']['id']
+        update_post_tweet_status_code = update_post_tweet(doc_id, tweet_id)
+        print(f"Posting to X {tweet}  {tweet_id}  {update_post_tweet_status_code}")
+        return update_post_tweet_status_code

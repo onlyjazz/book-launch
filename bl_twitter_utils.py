@@ -1,5 +1,4 @@
 import os
-
 import requests
 from dotenv import load_dotenv
 from requests_oauthlib import OAuth1
@@ -9,6 +8,22 @@ consumer_key = os.getenv("TWITTER_API_KEY")
 consumer_secret = os.getenv("TWITTER_API_SECRET")
 access_token = os.getenv("TWITTER_ACCESS_TOKEN")
 access_token_secret = os.getenv("TWITTER_ACCESS_TOKEN_SECRET")
+
+def search_tweet(hashtag):
+    url = f'https://api.x.com/2/tweets/search/recent?query=%23{hashtag}&max_results=1'
+
+    auth = OAuth1(consumer_key, consumer_secret, access_token, access_token_secret)
+    response = requests.get(url, auth=auth)
+    response_json = response.json()
+    print("Response Status Code:", response.status_code)
+    print("Response JSON:", response_json)
+    # Check for successful response
+    if response.status_code == 200:
+        tweets = response.json()
+        tweet_count = len(tweets.get('data', []))  # Get the count of tweets
+        print(f'Number of tweets found: {tweet_count}')
+    else:
+        print(f'Error: {response.status_code} - {response.text}')
 
 def get_tweet_metrics(tweet_id):
     url = f'https://api.twitter.com/2/tweets/{tweet_id}'
@@ -70,28 +85,3 @@ def post_tweet(content):
         print(f"Response: {response.json()}")
 
     return response.json()
-
-
-def bold_header(text):
-    """Convert the first line of a multiline text to bold Unicode characters."""
-    bold_map = {
-        'a': '𝗮', 'b': '𝗯', 'c': '𝗰', 'd': '𝗱', 'e': '𝗲', 'f': '𝗳', 'g': '𝗴',
-        'h': '𝗵', 'i': '𝗶', 'j': '𝗷', 'k': '𝗸', 'l': '𝗹', 'm': '𝗺', 'n': '𝗻',
-        'o': '𝗼', 'p': '𝗽', 'q': '𝗾', 'r': '𝗿', 's': '𝘀', 't': '𝘁', 'u': '𝘂',
-        'v': '𝘃', 'w': '𝘄', 'x': '𝘅', 'y': '𝘆', 'z': '𝘇',
-        'A': '𝗔', 'B': '𝗕', 'C': '𝗖', 'D': '𝗗', 'E': '𝗘', 'F': '𝗙', 'G': '𝗚',
-        'H': '𝗛', 'I': '𝗜', 'J': '𝗝', 'K': '𝗞', 'L': '𝗟', 'M': '𝗠', 'N': '𝗡',
-        'O': '𝗢', 'P': '𝗣', 'Q': '𝗤', 'R': '𝗥', 'S': '𝗦', 'T': '𝗧', 'U': '𝗨',
-        'V': '𝗩', 'W': '𝗪', 'X': '𝗫', 'Y': '𝗬', 'Z': '𝗭',
-        '0': '𝟬', '1': '𝟭', '2': '𝟮', '3': '𝟯', '4': '𝟰', '5': '𝟱', '6': '𝟲',
-        '7': '𝟳', '8': '𝟴', '9': '𝟵'
-    }
-
-    # Split the text into lines
-    lines = text.split('\n')
-
-    # Convert only the first line to bold characters
-    lines[0] = ''.join(bold_map.get(char, char) for char in lines[0])
-
-    # Join the lines back together
-    return '\n'.join(lines)

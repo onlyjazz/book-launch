@@ -35,17 +35,16 @@ She finds herself entangled in a web of international terror financing, personal
 Between high-stakes, high-tech and intimate moments, Bob and Alice explores the profound truth that a relationship thrives when both man and woman share the load, trusting each other to stand strong in their own moments of vulnerability.
 """
 
-post_response = post_tweet(x)
+#post_response = post_tweet(x)
 # Extract the ID
-tweet_id = post_response['data']['id']
+#tweet_id = post_response['data']['id']
 
 # Print the ID
-print(f"Extracted Twitter ID: {tweet_id}")
+#print(f"Extracted Twitter ID: {tweet_id}")
 
-metrics = get_tweet_metrics(tweet_id)
-if metrics:
-    print(f"Likes: {metrics['like_count']}")
-    print(f"Impressions: {metrics['impression_count']}")
-else:
-    print("Failed to retrieve tweet metrics.")
-
+#metrics = get_tweet_metrics(tweet_id)
+#if metrics:
+#    print(f"Likes: {metrics['like_count']}")
+#    print(f"Impressions: {metrics['impression_count']}")
+#else:
+#    print("Failed to retrieve tweet metrics.")
