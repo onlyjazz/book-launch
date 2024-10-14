@@ -44,7 +44,6 @@ def insert_draft_into_sanity(content):
     return {"status": "success", "id": "draft123"}
 
 
-
 # ---- Step 2 define LLM
 llm = ChatOpenAI(model="gpt-4o-mini")
 
@@ -86,7 +85,7 @@ checkpointer = MemorySaver()
 
 # Compile the graph
 app = workflow.compile(checkpointer=checkpointer)
-print('Starting the book launch app - v 0.43')
+print('Starting the book launch app - v 0.45')
 final_state = app.invoke(
     {"messages": [SystemMessage(content=get_latest_prompts_from_sanity())]},
     config={"configurable": {"thread_id": 42}}

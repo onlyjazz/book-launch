@@ -89,7 +89,7 @@ def insert_post(post_header, post_content):
             }
         ],
         "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        "cta": "https://dannylieberman.com/waitlist"
+        "cta": "https://www.amazon.com/Bob-Alice-anti-love-DANNY-LIEBERMAN-ebook/dp/B0DH83SGZ2/ref=sr_1_3"
     }
     # Wrap the document in the appropriate payload format
     payload = {
