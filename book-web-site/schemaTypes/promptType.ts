@@ -1,8 +1,8 @@
 import {defineField, defineType} from 'sanity'
 
-export const postType = defineType({
-  name: 'post',
-  title: 'Post',
+export const promptType = defineType({
+  name: 'prompt',
+  title: 'Prompt',
   type: 'document',
   fields: [
     defineField({
@@ -14,31 +14,21 @@ export const postType = defineType({
       type: 'boolean',
     }),
     defineField({
+      name: 'cycle',
+      type: 'number',
+    }),
+    defineField({
       name: 'body',
       type: 'array',
       of: [{type: 'block'}],
-    }),
-    defineField({
-      name: 'draft',
-      type: 'array',
-      of: [{type: 'block'}],
-    }),
-    defineField({
-      name: 'date',
-      type: 'datetime',
     }),
     defineField({
       name: 'cta',
       type: 'url',
     }),
     defineField({
-      name: 'tweet_id',
-      type: 'string',
-      readOnly: true
+      name: 'date',
+      type: 'datetime',
     }),
-    defineField({
-      name: 'image',
-      type: 'image',
-    })
   ],
 })
