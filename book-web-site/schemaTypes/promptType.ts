@@ -14,13 +14,13 @@ export const promptType = defineType({
       type: 'boolean',
     }),
     defineField({
+      name: 'cycle',
+      type: 'number',
+    }),
+    defineField({
       name: 'body',
       type: 'array',
       of: [{type: 'block'}],
-    }),
-    defineField({
-      name: 'cycle',
-      type: 'number',
     }),
     defineField({
       name: 'cta',

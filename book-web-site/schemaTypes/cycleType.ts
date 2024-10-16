@@ -6,6 +6,10 @@ export const cycleType = defineType({
   type: 'document',
   fields: [
     defineField({
+      name: 'key',
+      type: 'number',
+    }),
+    defineField({
       name: 'round',
       type: 'number',
     }),

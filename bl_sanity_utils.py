@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 import json
 
+from oauthlib.uri_validate import query
 from requests import post, Response
 import os
 import requests
@@ -206,17 +207,56 @@ def sanity_to_x(content):
         print(f"Posting to X {tweet}  {tweet_id}  {update_post_tweet_status_code}")
         return update_post_tweet_status_code
 
-def set_cycle(m):
-    n=m+1
-    return n
+def max_cycle():
+    """
+        Query the cycle data type and return the max value of the cycle
+        :param
+        :return:
+        max value or failure and log_response
+    """
+    query = f'math::max(*[_type == "prompt"].cycle)'
+    data = query_sanity_documents(query)
+    return data['result']
+
+
+def set_cycle(r):
+    """
+        Update the round of the publishing cycle
+        :param r current round
+        :return: 200 or failure and log_response
+    """
+    # Select the dataType _id  for update -TBD error handling
+    query = f'*[_type == "cycle"]'
+    data = query_sanity_documents(query)
+    doc_id = data['result'][0]['_id']
+
+    mutation = {
+        "mutations": [
+            {
+                "patch": {
+                    "id": doc_id,
+                    "set": {
+                        "round": r
+                    }
+                }
+            }
+        ]
+    }
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
+
+    url = f"https://{project_id}.api.sanity.io/{api_version}/data/mutate/{dataset}"
+    response = requests.post(url, json=mutation, headers=headers)
+    groq_query_string = string = f'"patch": {{"id": {doc_id}, "set": {{"round": {r}}}}}'
+    log_query_response(groq_query_string, response)
+    return response.status_code
 
 
 def get_cycle():
-    return 1
-
-def max_cycle():
-    """
-    Get the maximum prompt cycle number
-    :return: integer
-    """
-    return 7
+    # Select _id and header fom dataType no WHERE clause, returns None if no tweet_id
+    query = f'*[_type == "cycle"]{{round}}'
+    data = query_sanity_documents(query)
+    return data['result'][0]['round']

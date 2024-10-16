@@ -30,6 +30,19 @@ from bl_sanity_utils import *
 #    sanity_to_x(post_content)
 
 
-print(get_cta())
+#print(get_cta())
 
-print(get_system_prompt())
+#print(get_system_prompt())
+
+m = get_cycle()
+print(f'before the run {m}')
+mc = max_cycle()
+m+=1
+n=m%mc
+if n == 0:
+    n=mc
+print(f'after the run {n}')
+
+set_cycle(n)
+latest_cycle = get_cycle()
+print(f'latest cycle is {latest_cycle}')
