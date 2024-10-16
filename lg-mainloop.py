@@ -36,11 +36,10 @@ def insert_draft_into_sanity(content):
         body = content[newline_index + 1:]
     else:
         body = content
-    print(f"Body: {body}")
-    print('--------------------------------------------')
-    print(f"Inserting draft: {count_words(content)} words \n Title: {title} \n Body: {body}")
+    #print(f"Body: {body}")
+    #print('--------------------------------------------')
+    #print(f"Inserting draft: {count_words(content)} words \n Title: {title} \n Body: {body}")
     insert_post(title, body)
-    # put return code handling here
     return {"status": "success", "id": "draft123"}
 
 
@@ -51,33 +50,65 @@ llm = ChatOpenAI(model="gpt-4o-mini")
 class State(TypedDict):
     messages: Annotated[list, add_messages]
 
-# --- Step 4: Define nodes ---
-def draft_writer(state: State):
-    print ('running draft model agent')
-    return {"messages": [llm.invoke(state["messages"])]}
-
+# ---- Step 3 define functions that run on the graph ---
 def save_content(state: State):
     """
         Insert text content into Sanity.io for review and platform distribution.
         This function uploads the content to Sanity for both Substack and X platforms.
     """
+    print ('\nRunning the Save content agent')
     response = state["messages"]
     # response contains a list of objects
     # SystemMessage := response[0].content
     # AIMessage := response[1].content
-    t= response[1].content
+    t = response[1].content
     insert_draft_into_sanity(t)
 
-# ---- Step 4: Integrate Agent Functions into the LangGraph Framework ----
+def draft_writer(state: State):
+    print ('\nRunning the draft model agent')
+    return {"messages": [llm.invoke(state["messages"])]}
 
-# Init StateGraph for 2 nodes
-# Establish connections between nodes in the graph
-# draft -> save -> END
+
+def literary_critic(state: State):
+    print('\nRunning the literary critic model agent')
+    # Content from the previous state
+    response = state["messages"]
+    draft_content = response[1].content
+    critic_system_prompt = (
+        "This is a draft of a post for X for my latest book - Bob and Alice - an anti-love story"
+        "Edit it so that it will score a perfect score of 10 for people who work in tech in California"
+        "Use language that jives with people age 25-39"
+        "Add emojis in the header to make it more appealing and shareable on social media"
+        "Keep the romance flowing"
+    )
+    state["messages"] = [
+        {"role": "system", "content": critic_system_prompt},
+        {"role": "user", "content": draft_content},
+    ]
+
+    response = llm.invoke(state["messages"])
+    ai_message_content = response.content
+
+    # Append the AI-generated message to the state messages
+    state["messages"].append({"role": "assistant", "content": ai_message_content})
+
+    # Return the updated state
+    return state
+
+
+# ---- Step 5: Integrate Agent Functions into the LangGraph Framework ----
+# Define the workflow logic
 workflow = StateGraph(State)
+
+# Nodes
 workflow.add_node("draft", draft_writer)
+workflow.add_node("critic", literary_critic)
 workflow.add_node("save", save_content)
+
+# Edges
 workflow.add_edge(START, "draft")
-workflow.add_edge("draft", "save")
+workflow.add_edge("draft", "critic")
+workflow.add_edge("critic", "save")
 workflow.add_edge("save", END)
 
 # Initialize memory to persist state between graph runs
@@ -85,7 +116,11 @@ checkpointer = MemorySaver()
 
 # Compile the graph
 app = workflow.compile(checkpointer=checkpointer)
-print('Starting the book launch app - v 0.45')
+print('Starting the book launch app - v 0.47')
+print('System Prompt\n\n')
+print(get_latest_prompts_from_sanity())
+print('\n-------------------------------------------------------------\n')
+
 final_state = app.invoke(
     {"messages": [SystemMessage(content=get_latest_prompts_from_sanity())]},
     config={"configurable": {"thread_id": 42}}

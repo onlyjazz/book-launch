@@ -1,11 +1,11 @@
 import {eventType} from './eventType'
 import {authorType} from './authorType'
-import {venueType} from './venueType'
+import {cycleType} from './cycleType'
 import {postType} from './postType'
 import {promptType} from './promptType'
 export const schemaTypes = [
     eventType,
-    venueType,
+    cycleType,
     authorType,
     postType,
     promptType,

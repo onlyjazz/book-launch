@@ -14,9 +14,10 @@ dataset = os.getenv("SANITY_DATASET")
 token = os.getenv("SANITY_TOKEN")
 api_version = os.getenv("SANITY_API_VERSION")
 
+
 def update_post_tweet(doc_id, tweet_id):
     """
-        Update a single post with tweet_id.
+        Update a single post with tweet_id and cta from the prompt
         :param doc_id:
         :param tweet_id:
         :return: 200 or failure and log_response
@@ -64,6 +65,7 @@ def insert_post(post_header, post_content):
     doc = {
         "_type": "post",
         "header": post_header,
+        "cta": get_cta(),
         "draft": [
             {
                 "_type": "block",
@@ -88,8 +90,7 @@ def insert_post(post_header, post_content):
                 ]
             }
         ],
-        "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        "cta": "https://www.amazon.com/Bob-Alice-anti-love-DANNY-LIEBERMAN-ebook/dp/B0DH83SGZ2/ref=sr_1_3"
+        "date": datetime.now().strftime("%Y-%m-%d %H:%M")
     }
     # Wrap the document in the appropriate payload format
     payload = {
@@ -144,12 +145,20 @@ def log_query_response(groq_query: str, response: requests.Response) -> None:
 
 def get_system_prompt():
     current_date = datetime.now()
-    current_dow = current_date.isoweekday()
+    current_cycle  = 1+current_date.isoweekday()
     # Query prompt documents by dow, body is portable text field, return a string
-    query = f'*[_type == "prompt" && dow == {current_dow}]{{"body": pt::text(body)}}'
+    query = f'*[_type == "prompt" && cycle == {current_cycle}]{{"body": pt::text(body)}}'
     data = query_sanity_documents(query)
     p = data['result'][0]['body']
     return p
+
+def get_cta():
+    current_date = datetime.now()
+    current_cycle  = 1+current_date.isoweekday()
+    query = f'*[_type == "prompt" && cycle == {current_cycle}]{{cta}}'
+    data = query_sanity_documents(query)
+    p = data['result'][0]
+    return p['cta']
 
 def get_id_by_header(header):
     # Query prompt documents by dow, body is portable text field, return a string
@@ -184,7 +193,8 @@ def sanity_to_x(content):
     approved = content['approved']
     body = content['body']
     tweet_id = content['tweet_id']
-    tweet = header + "\n\n" + body
+    cta = get_cta()
+    tweet = header + "\n\n" + body + "\n\n" + cta
     if not approved or tweet_id is not None:
         print('Post was not approved or already tweeted')
         return 200
@@ -195,3 +205,18 @@ def sanity_to_x(content):
         update_post_tweet_status_code = update_post_tweet(doc_id, tweet_id)
         print(f"Posting to X {tweet}  {tweet_id}  {update_post_tweet_status_code}")
         return update_post_tweet_status_code
+
+def set_cycle(m):
+    n=m+1
+    return n
+
+
+def get_cycle():
+    return 1
+
+def max_cycle():
+    """
+    Get the maximum prompt cycle number
+    :return: integer
+    """
+    return 7

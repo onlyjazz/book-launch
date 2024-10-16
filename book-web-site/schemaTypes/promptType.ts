@@ -19,8 +19,12 @@ export const promptType = defineType({
       of: [{type: 'block'}],
     }),
     defineField({
-      name: 'dow',
+      name: 'cycle',
       type: 'number',
+    }),
+    defineField({
+      name: 'cta',
+      type: 'url',
     }),
     defineField({
       name: 'date',
