@@ -1,8 +1,6 @@
 from dotenv import load_dotenv
 from datetime import datetime
 import json
-
-from oauthlib.uri_validate import query
 from requests import post, Response
 import os
 import requests
@@ -57,7 +55,8 @@ def insert_post(post_header, post_content):
     Returns:
     - Response from the Sanity API.
     """
-
+    cta = get_cta()
+    post_content_cta = post_content + "\n\n" + cta
     url = f"https://{project_id}.api.sanity.io/{api_version}/data/mutate/{dataset}"
     headers = {
         "Content-Type": "application/json",
@@ -74,7 +73,7 @@ def insert_post(post_header, post_content):
                 "children": [
                     {
                         "_type": "span",
-                        "text": post_content,
+                        "text": post_content_cta,
                     }
                 ]
             }
@@ -144,18 +143,15 @@ def log_query_response(groq_query: str, response: requests.Response) -> None:
     )
     print(log_message)
 
-def get_system_prompt():
-    current_date = datetime.now()
-    current_cycle  = 1+current_date.isoweekday()
-    # Query prompt documents by dow, body is portable text field, return a string
+def get_system_prompt(current_cycle):
+    # Query prompt. Body is portable text field, return a string
     query = f'*[_type == "prompt" && cycle == {current_cycle}]{{"body": pt::text(body)}}'
     data = query_sanity_documents(query)
     p = data['result'][0]['body']
     return p
 
 def get_cta():
-    current_date = datetime.now()
-    current_cycle  = 1+current_date.isoweekday()
+    current_cycle = get_cycle()
     query = f'*[_type == "prompt" && cycle == {current_cycle}]{{cta}}'
     data = query_sanity_documents(query)
     p = data['result'][0]
@@ -194,8 +190,7 @@ def sanity_to_x(content):
     approved = content['approved']
     body = content['body']
     tweet_id = content['tweet_id']
-    cta = get_cta()
-    tweet = header + "\n\n" + body + "\n\n" + cta
+    tweet = header + "\n\n" + body
     if not approved or tweet_id is not None:
         print('Post was not approved or already tweeted')
         return 200
@@ -219,24 +214,29 @@ def max_cycle():
     return data['result']
 
 
-def set_cycle(r):
+def set_cycle():
     """
-        Update the round of the publishing cycle
-        :param r current round
+        Increment and update the round of the publishing cycle
         :return: 200 or failure and log_response
     """
-    # Select the dataType _id  for update -TBD error handling
+    # Query the cycle record
     query = f'*[_type == "cycle"]'
     data = query_sanity_documents(query)
     doc_id = data['result'][0]['_id']
-
+    # increment modulo number of prompts in the database
+    mc = max_cycle()
+    m = data['result'][0]['round']
+    m += 1
+    n = m % mc
+    if n == 0:
+        n = mc
     mutation = {
         "mutations": [
             {
                 "patch": {
                     "id": doc_id,
                     "set": {
-                        "round": r
+                        "round": n
                     }
                 }
             }
@@ -250,13 +250,13 @@ def set_cycle(r):
 
     url = f"https://{project_id}.api.sanity.io/{api_version}/data/mutate/{dataset}"
     response = requests.post(url, json=mutation, headers=headers)
-    groq_query_string = string = f'"patch": {{"id": {doc_id}, "set": {{"round": {r}}}}}'
+    groq_query_string = f'"patch": {{"id": {doc_id}, "set": {{"round": {n}}}}}'
     log_query_response(groq_query_string, response)
     return response.status_code
 
 
 def get_cycle():
-    # Select _id and header fom dataType no WHERE clause, returns None if no tweet_id
+    # Get the latest round of the publishing cycle
     query = f'*[_type == "cycle"]{{round}}'
     data = query_sanity_documents(query)
     return data['result'][0]['round']

@@ -1,9 +1,9 @@
 from flask import Flask, request, jsonify
 import json
 from bl_sanity_utils import sanity_to_x
+# Deploy to GCP Cloud Run functions to https://us-central1-fast-kiln-438503-q2.cloudfunctions.net/sanity-webhook-service
 # Initialize Flask app
 app = Flask(__name__)
-
 
 
 # Define the webhook endpoint

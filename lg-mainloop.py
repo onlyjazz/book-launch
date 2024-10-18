@@ -6,7 +6,7 @@ from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
-from bl_sanity_utils import get_system_prompt, insert_post
+from bl_sanity_utils import get_system_prompt, insert_post, get_cycle, set_cycle
 
 # Rev 2 Simplified routing
 # Load environment variables from .env file
@@ -18,18 +18,17 @@ class MultiAgentState(TypedDict):
     reviewer_messages: Annotated[Sequence[BaseMessage], operator.add]
     next: str
 
-# ---- Step 1: Define the Sanity.io Stub Functions ----
-def get_latest_prompts_from_sanity():
-    """Retrieve today's prompt from Sanity.io (Stub Function)."""
-    return get_system_prompt()
-
+# ---- Step 1: Define tool Functions ----
 
 def count_words(text):
     words = text.split()
     return len(words)
 
 def insert_draft_into_sanity(content):
-    """Stub function to insert drafts into Sanity.io."""
+    """
+        insert drafts into Sanity.io.
+        :param content:
+    """
     title = content.split('\n')[0].replace('*','').replace('#','')
     newline_index = content.find('\n')
     if newline_index != -1:
@@ -50,7 +49,7 @@ llm = ChatOpenAI(model="gpt-4o-mini")
 class State(TypedDict):
     messages: Annotated[list, add_messages]
 
-# ---- Step 3 define functions that run on the graph ---
+# ---- Step 3 define node functions that run on the graph ---
 def save_content(state: State):
     """
         Insert text content into Sanity.io for review and platform distribution.
@@ -65,22 +64,16 @@ def save_content(state: State):
     insert_draft_into_sanity(t)
 
 def draft_writer(state: State):
-    print ('\nRunning the draft model agent')
+    print ('\nRunning the Draft model agent')
     return {"messages": [llm.invoke(state["messages"])]}
 
 
 def literary_critic(state: State):
-    print('\nRunning the literary critic model agent')
+    print('\nRunning the Literary critic model agent')
     # Content from the previous state
     response = state["messages"]
     draft_content = response[1].content
-    critic_system_prompt = (
-        "This is a draft of a post for X for my latest book - Bob and Alice - an anti-love story"
-        "Edit it so that it will score a perfect score of 10 for people who work in tech in California"
-        "Use language that jives with people age 25-39"
-        "Add emojis in the header to make it more appealing and shareable on social media"
-        "Keep the romance flowing"
-    )
+    critic_system_prompt = get_system_prompt(0)
     state["messages"] = [
         {"role": "system", "content": critic_system_prompt},
         {"role": "user", "content": draft_content},
@@ -116,13 +109,20 @@ checkpointer = MemorySaver()
 
 # Compile the graph
 app = workflow.compile(checkpointer=checkpointer)
-print('Starting the book launch app - v 0.47')
-print('System Prompt\n\n')
-print(get_latest_prompts_from_sanity())
-print('\n-------------------------------------------------------------\n')
+print('Starting the book launch app - v 0.50')
 
+current_cycle = get_cycle()
+print('This round is:', current_cycle)
+system_prompt = get_system_prompt(current_cycle)
+print('System Prompt\n\n')
+print(system_prompt)
+print('\n-------------------------------------------------------------\n')
+set_cycle()
+next_cycle = get_cycle()
+print('Next round will be:', next_cycle)
+print('\n-------------------------------------------------------------\n')
 final_state = app.invoke(
-    {"messages": [SystemMessage(content=get_latest_prompts_from_sanity())]},
+    {"messages": [SystemMessage(content=system_prompt)]},
     config={"configurable": {"thread_id": 42}}
 )
 
