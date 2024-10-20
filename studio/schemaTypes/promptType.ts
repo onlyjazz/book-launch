@@ -6,7 +6,7 @@ export const promptType = defineType({
   type: 'document',
   fields: [
     defineField({
-      name: 'header',
+      name: 'identifier',
       type: 'string',
     }),
     defineField({
