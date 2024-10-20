@@ -24,7 +24,7 @@ export const promptType = defineType({
     }),
     defineField({
       name: 'cta',
-      type: 'url',
+      type: 'text',
     }),
     defineField({
       name: 'date',

@@ -28,8 +28,12 @@ export const postType = defineType({
       type: 'datetime',
     }),
     defineField({
-      name: 'cta',
-      type: 'url',
+      name: 'prompt_id',
+      type: 'number',
+    }),
+    defineField({
+      name: 'story_id',
+      type: 'number',
     }),
     defineField({
       name: 'tweet_id',

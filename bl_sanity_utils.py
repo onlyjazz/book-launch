@@ -16,7 +16,7 @@ api_version = os.getenv("SANITY_API_VERSION")
 
 def update_post_tweet(doc_id, tweet_id):
     """
-        Update a single post with tweet_id and cta from the prompt
+        Update a single post with tweet_id
         :param doc_id:
         :param tweet_id:
         :return: 200 or failure and log_response
