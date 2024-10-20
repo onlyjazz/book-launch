@@ -5,7 +5,7 @@ import {schemaTypes} from './schemaTypes'
 import {markdownSchema} from 'sanity-plugin-markdown'
 export default defineConfig({
   "name": 'default',
-  "title": 'book-web-site',
+  "title": 'next-page-ai',
 
   "projectId": 'rh2kgtdt',
   "dataset": 'production',
