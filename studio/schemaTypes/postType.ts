@@ -28,11 +28,15 @@ export const postType = defineType({
       type: 'datetime',
     }),
     defineField({
-      name: 'prompt_id',
+      name: 'prompt_identifier',
+      type: 'string',
+    }),
+    defineField({
+      name: 'impressions',
       type: 'number',
     }),
     defineField({
-      name: 'story_id',
+      name: 'engagement_rate',
       type: 'number',
     }),
     defineField({
