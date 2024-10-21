@@ -1,18 +1,15 @@
-from dotenv import load_dotenv
-from datetime import datetime
 import json
+import time
+from collections import defaultdict
+from datetime import datetime
 from requests import post, Response
-import os
-import requests
-from bl_twitter_utils import post_tweet
+from bl_twitter_utils import *
 
-# Load environment variables for global reference
 load_dotenv()
 project_id = os.getenv("SANITY_PROJECT_ID")
 dataset = os.getenv("SANITY_DATASET")
 token = os.getenv("SANITY_TOKEN")
 api_version = os.getenv("SANITY_API_VERSION")
-
 def update_post_statistics(doc_id, engagement_rate, impression_count):
     """
         Update a single post with tweet statistics for the post
@@ -50,7 +47,7 @@ def update_prompt_stats(doc_id, impression_count, engagement_rate):
     """
         Update a single prompt with tweet statistics for the prompt
         :param doc_id:
-        :param impression_count
+        :param impression_count:
         :param engagement_rate:
         :return: 200 or failure and log_response
     """
@@ -172,6 +169,11 @@ def insert_post(post_header, post_content):
 
 
 def query_sanity_documents(groq_query):
+    """
+    General function to execute query against Sanity API
+        :param groq_query:
+        :return: dictionary or array or single variable depending on query or HTTP response if error
+    """
     url = f"https://{project_id}.api.sanity.io/{api_version}/data/query/{dataset}"
     headers = {
         "Content-Type": "application/json",
@@ -227,10 +229,6 @@ def get_id_by_header(header):
     data = query_sanity_documents(query)
     return data['result'][0]['_id']
 
-def get_prompt_id_by_identifier(identifier):
-    query = f'*[_type == "prompt" && identifier == "{identifier}"]._id'
-    data = query_sanity_documents(query)
-    return data['result'][0]
 
 def get_post_by_header(header):
     # Query prompt documents by header
@@ -243,7 +241,11 @@ def get_post_by_header(header):
 
 
 def select_all(dataType):
-    # Select _id and header fom dataType no WHERE clause, returns None if no tweet_id
+    """
+        Early version of a SELECT * for a dataType
+        :param dataType:
+        :return: dictionary of data
+    """
     query = f'*[_type == "{dataType}"]{{_id, header, tweet_id}}'
     data = query_sanity_documents(query)
     return  data['result']
@@ -328,3 +330,71 @@ def get_cycle():
     query = f'*[_type == "cycle"]{{round}}'
     data = query_sanity_documents(query)
     return data['result'][0]['round']
+
+
+def feedback_agent_post_stats():
+    """
+    Part 1 of feedback_agent - updates posts with latest tweet stats
+    :return: nothing
+    """
+    query = '*[_type == "post" && !(_id in path("drafts.**"))] | order(header asc) { _id, tweet_id, header }'
+    document_ids = query_sanity_documents(query)
+    print('Query returned ', len(document_ids['result']), 'published posts')
+    i = 0
+    for post_document in document_ids['result']:
+        i += 1
+        # if i>= 3:
+        #    break
+        doc_id = post_document['_id']
+        tweet_id = post_document['tweet_id']
+        metrics = get_tweet_metrics(tweet_id)
+        engagement_rate = metrics['engagement_rate']
+        impression_count = metrics['impression_count']
+        header = post_document['header']
+        print(
+            f'{i} header {header}, tweet_id {tweet_id}, doc_id {doc_id}, engagement_rate {engagement_rate}, impression_count {impression_count} ')
+        status_code = update_post_statistics(doc_id, engagement_rate, impression_count)
+        if status_code == 429:
+            print("Rate limit exceeded. Retrying after 15 minutes...")
+            time.sleep(15 * 60)
+            continue
+        time.sleep(64)  # Wait for 64s
+
+def feedback_agent_prompt_stats():
+    """
+        Part 2 of feedback_agent - aggregates post stats into prompts that generated the posts
+    :return: Nothing
+    """
+    # Step 1: Retrieve prompt documents
+    query_prompts = '*[_type == "prompt"]{_id, identifier}'
+    data = query_sanity_documents(query_prompts)
+    # Create a mapping from identifier to document ID
+    prompts = data['result']
+    prompt_id_mapping = {prompt['identifier']: prompt['_id'] for prompt in prompts}
+
+    # Step 2: Retrieve posts and aggregate data
+    query_posts = '*[_type == "post"]{prompt_identifier, impression_count, engagement_rate}'
+    data = query_sanity_documents(query_posts)
+    posts = data['result']
+
+    # Aggregate sums by prompt_identifier
+    aggregates = defaultdict(lambda: {'impression_count': 0, 'engagement_rate': 0, 'count': 0})
+
+    for post_document in posts:
+        identifier = post_document['prompt_identifier']
+        aggregates[identifier]['impression_count'] += post_document['impression_count']
+        aggregates[identifier]['engagement_rate'] += post_document['engagement_rate']
+        aggregates[identifier]['count'] += 1  # Count for averaging later if needed
+
+    # Step 3: Update the corresponding prompt documents
+    for identifier, metrics in aggregates.items():
+        if identifier in prompt_id_mapping:  # Ensure the identifier exists in the mapping
+            doc_id = prompt_id_mapping[identifier]
+            print(identifier, doc_id, metrics)
+
+            impression_count_sum = metrics['impression_count']
+            engagement_rate_sum = metrics['engagement_rate']
+            status_code = update_post_statistics(doc_id, engagement_rate_sum, impression_count_sum)
+            print(status_code)
+        else:
+            print(f"No  prompts found in posts for {identifier}")

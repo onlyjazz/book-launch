@@ -51,4 +51,6 @@ from bl_sanity_utils import *
 #post_content = "abc" + cta
 #print (post_content)
 
-print(get_prompt_id_by_identifier('Sunday'))
+feedback_agent_post_stats()
+feedback_agent_prompt_stats()
+

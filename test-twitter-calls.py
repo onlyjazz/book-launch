@@ -1,6 +1,5 @@
 from bl_sanity_utils import *
 from bl_twitter_utils import *
-import time
 # Test usage of post_tweet(content)
 x = """
 🔥My novel is now Pre-Order on Amazon!  
@@ -73,23 +72,4 @@ for post in document_ids['result']:
     header = post['header']
     print(
         f'{i} header {header}, tweet_id {tweet_id}, doc_id {doc_id}')
-
-i=0
-for post in document_ids['result']:
-    i+=1
-    #if i>= 3:
-    #    break
-    doc_id = post['_id']
-    tweet_id = post['tweet_id']
-    metrics = get_tweet_metrics(tweet_id)
-    engagement_rate = metrics['engagement_rate']
-    impression_count = metrics['impression_count']
-    header = post['header']
-    print(f' header {header}, tweet_id {tweet_id}, doc_id {doc_id}, engagement_rate {engagement_rate}, impression_count {impression_count} ')
-    status_code = update_post_statistics(doc_id, engagement_rate, impression_count)
-    if status_code == 429:
-        print("Rate limit exceeded. Retrying after 15 minutes...")
-        time.sleep(15 * 60)
-        continue
-    time.sleep(64)  # Wait for 64s
 
