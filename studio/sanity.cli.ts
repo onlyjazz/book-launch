@@ -1,6 +1,7 @@
 import {defineCliConfig} from 'sanity/cli'
 
 export default defineCliConfig({
+  studioHost: 'nextpage',
   api: {
     projectId: 'rh2kgtdt',
     dataset: 'production'

@@ -6,12 +6,20 @@ export const promptType = defineType({
   type: 'document',
   fields: [
     defineField({
-      name: 'header',
+      name: 'identifier',
       type: 'string',
     }),
     defineField({
       name: 'approved',
       type: 'boolean',
+    }),
+    defineField({
+      name: 'impression_count',
+      type: 'number',
+    }),
+    defineField({
+      name: 'engagement_rate',
+      type: 'number',
     }),
     defineField({
       name: 'cycle',
@@ -24,7 +32,7 @@ export const promptType = defineType({
     }),
     defineField({
       name: 'cta',
-      type: 'url',
+      type: 'text',
     }),
     defineField({
       name: 'date',

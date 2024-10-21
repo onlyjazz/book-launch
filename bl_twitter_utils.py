@@ -35,8 +35,6 @@ def get_tweet_metrics(tweet_id):
 
     response = requests.get(url, auth=auth, params=params)
     response_json = response.json()
-    print("Response Status Code:", response.status_code)
-    print("Response JSON:", response_json)
 
     if response.status_code != 200:
         print(f"Request returned an error: {response.status_code} {response.text}")
@@ -53,12 +51,15 @@ def get_tweet_metrics(tweet_id):
     tweet_data = response_json['data']
     public_metrics = tweet_data.get('public_metrics', {})
     non_public_metrics = tweet_data.get('non_public_metrics', {})
-
+    retweet_count = public_metrics.get('retweet_count', 0)
+    reply_count = public_metrics.get('reply_count', 0)
     like_count = public_metrics.get('like_count', 0)
+    quote_count = public_metrics.get('quote_count', 0)
     impression_count = non_public_metrics.get('impression_count', 'Not available')
+    engagement_rate = (like_count + retweet_count + reply_count + quote_count) / impression_count * 100
 
     return {
-        'like_count': like_count,
+        'engagement_rate': engagement_rate,
         'impression_count': impression_count
     }
 

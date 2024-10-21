@@ -1,0 +1,20 @@
+{
+  "name": "studio",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "sanity dev",
+    "build": "sanity build"
+  },
+  "description": "Content manager connected to the Sanity backend.",
+  "keywords": [],
+  "author": "Danny Lieberman",
+  "license": "ISC",
+  "devDependencies": {
+    "@sanity/cli": "^3.61.0"
+  },
+  "dependencies": {
+    "@sanity/vision": "^3.61.0",
+    "sanity": "^3.61.0",
+    "styled-components": "^6.1.13"
+  }
+}

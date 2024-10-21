@@ -34,15 +34,23 @@ from bl_sanity_utils import *
 
 #print(get_system_prompt())
 
-m = get_cycle()
-print(f'before the run {m}')
-mc = max_cycle()
-m+=1
-n=m%mc
-if n == 0:
-    n=mc
-print(f'after the run {n}')
+#m = get_cycle()
+#print(f'Current round {m}')
+#system_prompt = get_system_prompt(m)
+#print(system_prompt)
+#print('\n-------------------------------------------------------------\n')
 
-set_cycle(n)
-latest_cycle = get_cycle()
-print(f'latest cycle is {latest_cycle}')
+#set_cycle()
+#next_cycle = get_cycle()
+#print(f'Next round will be {next_cycle}')
+
+#current_cycle = get_cycle()
+#print('This round is:', current_cycle)
+#cta = get_cta()
+#print(cta)
+#post_content = "abc" + cta
+#print (post_content)
+
+feedback_agent_post_stats()
+feedback_agent_prompt_stats()
+
