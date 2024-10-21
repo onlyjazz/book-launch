@@ -44,10 +44,11 @@ from bl_sanity_utils import *
 #next_cycle = get_cycle()
 #print(f'Next round will be {next_cycle}')
 
-current_cycle = get_cycle()
-print('This round is:', current_cycle)
-cta = get_cta()
-print(cta)
-post_content = "abc" + cta
-print (post_content)
+#current_cycle = get_cycle()
+#print('This round is:', current_cycle)
+#cta = get_cta()
+#print(cta)
+#post_content = "abc" + cta
+#print (post_content)
 
+print(get_prompt_id_by_identifier('Sunday'))

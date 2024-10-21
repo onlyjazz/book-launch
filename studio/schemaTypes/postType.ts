@@ -32,7 +32,7 @@ export const postType = defineType({
       type: 'string',
     }),
     defineField({
-      name: 'impressions',
+      name: 'impression_count',
       type: 'number',
     }),
     defineField({

@@ -13,6 +13,70 @@ dataset = os.getenv("SANITY_DATASET")
 token = os.getenv("SANITY_TOKEN")
 api_version = os.getenv("SANITY_API_VERSION")
 
+def update_post_statistics(doc_id, engagement_rate, impression_count):
+    """
+        Update a single post with tweet statistics for the post
+        :param doc_id:
+        :param engagement_rate:
+        :param impression_count:
+        :return: 200 or failure and log_response
+    """
+    mutation = {
+        "mutations": [
+            {
+                "patch": {
+                    "id": doc_id,
+                    "set": {
+                        "engagement_rate": engagement_rate,
+                        "impression_count": impression_count
+                    }
+                }
+            }
+        ]
+    }
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
+
+    url = f"https://{project_id}.api.sanity.io/{api_version}/data/mutate/{dataset}"
+    response = requests.post(url, json=mutation, headers=headers)
+    log_query_response(' "patch": {"id": doc_id,"set": {"impression_count": impression_count, "engagement_rate": engagement_rate }', response)
+    return response.status_code
+
+
+def update_prompt_stats(doc_id, impression_count, engagement_rate):
+    """
+        Update a single prompt with tweet statistics for the prompt
+        :param doc_id:
+        :param impression_count
+        :param engagement_rate:
+        :return: 200 or failure and log_response
+    """
+    mutation = {
+        "mutations": [
+            {
+                "patch": {
+                    "id": doc_id,
+                    "set": {
+                        "impression_count": impression_count,
+                        "engagement_rate": engagement_rate
+                    }
+                }
+            }
+        ]
+    }
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
+
+    url = f"https://{project_id}.api.sanity.io/{api_version}/data/mutate/{dataset}"
+    response = requests.post(url, json=mutation, headers=headers)
+    log_query_response(' "patch": {"id": doc_id,"set": {"impression_count": impression_count, "engagement_rate": engagement_rate}', response)
+    return response.status_code
 
 def update_post_tweet(doc_id, tweet_id):
     """
@@ -163,9 +227,13 @@ def get_id_by_header(header):
     data = query_sanity_documents(query)
     return data['result'][0]['_id']
 
+def get_prompt_id_by_identifier(identifier):
+    query = f'*[_type == "prompt" && identifier == "{identifier}"]._id'
+    data = query_sanity_documents(query)
+    return data['result'][0]
+
 def get_post_by_header(header):
     # Query prompt documents by header
-    # {{_id, header, approved, tweet_id, body: pt::text(body)}}
     query = f'*[_type == "post" && header == "{header}"]{{_id, header, approved, tweet_id, "body": pt::text(body)}}'
     data = query_sanity_documents(query)
     if data == 400:

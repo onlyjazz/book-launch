@@ -14,7 +14,7 @@ export const promptType = defineType({
       type: 'boolean',
     }),
     defineField({
-      name: 'impressions',
+      name: 'impression_count',
       type: 'number',
     }),
     defineField({
