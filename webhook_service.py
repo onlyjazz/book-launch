@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 import json
-from bl_sanity_utils import sanity_to_x
+from bl_sanity_utils import *
 # Deploy to GCP Cloud Run functions to https://us-central1-fast-kiln-438503-q2.cloudfunctions.net/sanity-webhook-service
 # Initialize Flask app
 app = Flask(__name__)
@@ -12,12 +12,8 @@ def handle_webhook():
     try:
         # Parse the incoming data
         content = request.get_json()
-        # Log the incoming webhook data (optional)
-        print("Webhook received - calling function sanity_to_x: ")
-        print('-------------------------------------------------\n')
-        pretty_json = json.dumps(content, indent=4)
-        print(pretty_json)
-        print('-------------------------------------------------\n')
+        # TBD process idempotency hookId
+        print("Webhook received - calling function sanity_to_x:\n ")
         res=sanity_to_x(content)
         return jsonify({"status": res, "message": 'tweet processed'}), 200
 

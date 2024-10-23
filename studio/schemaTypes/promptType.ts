@@ -10,6 +10,10 @@ export const promptType = defineType({
       type: 'string',
     }),
     defineField({
+      name: 'cycle',
+      type: 'number',
+    }),
+    defineField({
       name: 'approved',
       type: 'boolean',
     }),
@@ -19,10 +23,6 @@ export const promptType = defineType({
     }),
     defineField({
       name: 'engagement_rate',
-      type: 'number',
-    }),
-    defineField({
-      name: 'cycle',
       type: 'number',
     }),
     defineField({

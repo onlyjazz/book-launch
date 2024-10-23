@@ -42,7 +42,7 @@ export const postType = defineType({
     defineField({
       name: 'tweet_id',
       type: 'string',
-      readOnly: false
+      readOnly: true
     }),
     defineField({
       name: 'image',

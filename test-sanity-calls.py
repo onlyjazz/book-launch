@@ -4,7 +4,7 @@ from bl_sanity_utils import *
 #data=select_all("post")
 #print(data)
 #for document in data:
-#    print(f"{(document['_id']).ljust(50)}  {document['header'][:18]}  {document['tweet_id']}")
+#    print(f"{(document['_id'])}  {document['header'][:18]}  {document['tweet_id']}")
 
 #post_header = 'The first thing you do after selling a startup?'
 #post_id = get_id_by_header(post_header)
@@ -33,7 +33,6 @@ from bl_sanity_utils import *
 #print(get_cta())
 
 #print(get_system_prompt())
-
 #m = get_cycle()
 #print(f'Current round {m}')
 #system_prompt = get_system_prompt(m)
@@ -51,6 +50,14 @@ from bl_sanity_utils import *
 #post_content = "abc" + cta
 #print (post_content)
 
-feedback_agent_post_stats()
-feedback_agent_prompt_stats()
+#print(get_prompt_identifier())
+#status_code = insert_post("T", "Some content")
+#print(status_code, "inserted a post hopefully with correct prompt_identifier for current cycle")
+
+#feedback_agent_run()
+pid = "Sunday"
+groq_query = f'*[_type == "post" && prompt_identifier match {pid} ] | order(impression_count desc){{prompt_identifier, header, impression_count, engagement_rate, tweet_id}}'
+res = query_sanity_documents(groq_query)
+print(res)
+
 

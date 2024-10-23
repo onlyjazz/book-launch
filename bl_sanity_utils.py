@@ -1,15 +1,17 @@
+import os
 import json
 import time
 from collections import defaultdict
 from datetime import datetime
 from requests import post, Response
-from bl_twitter_utils import *
+import bl_twitter_utils
 
-load_dotenv()
-project_id = os.getenv("SANITY_PROJECT_ID")
-dataset = os.getenv("SANITY_DATASET")
-token = os.getenv("SANITY_TOKEN")
-api_version = os.getenv("SANITY_API_VERSION")
+
+bl_twitter_utils.load_dotenv()
+project_id = bl_twitter_utils.os.getenv("SANITY_PROJECT_ID")
+dataset = bl_twitter_utils.os.getenv("SANITY_DATASET")
+token = bl_twitter_utils.os.getenv("SANITY_TOKEN")
+api_version = bl_twitter_utils.os.getenv("SANITY_API_VERSION")
 def update_post_statistics(doc_id, engagement_rate, impression_count):
     """
         Update a single post with tweet statistics for the post
@@ -38,7 +40,7 @@ def update_post_statistics(doc_id, engagement_rate, impression_count):
     }
 
     url = f"https://{project_id}.api.sanity.io/{api_version}/data/mutate/{dataset}"
-    response = requests.post(url, json=mutation, headers=headers)
+    response = bl_twitter_utils.requests.post(url, json=mutation, headers=headers)
     log_query_response(' "patch": {"id": doc_id,"set": {"impression_count": impression_count, "engagement_rate": engagement_rate }', response)
     return response.status_code
 
@@ -71,7 +73,7 @@ def update_prompt_stats(doc_id, impression_count, engagement_rate):
     }
 
     url = f"https://{project_id}.api.sanity.io/{api_version}/data/mutate/{dataset}"
-    response = requests.post(url, json=mutation, headers=headers)
+    response = bl_twitter_utils.requests.post(url, json=mutation, headers=headers)
     log_query_response(' "patch": {"id": doc_id,"set": {"impression_count": impression_count, "engagement_rate": engagement_rate}', response)
     return response.status_code
 
@@ -101,7 +103,7 @@ def update_post_tweet(doc_id, tweet_id):
     }
 
     url = f"https://{project_id}.api.sanity.io/{api_version}/data/mutate/{dataset}"
-    response = requests.post(url, json=mutation, headers=headers)
+    response = bl_twitter_utils.requests.post(url, json=mutation, headers=headers)
     log_query_response(' "patch": {"id": doc_id,"set": {"tweet_id": tweet_id}', response)
     return response.status_code
 
@@ -126,7 +128,7 @@ def insert_post(post_header, post_content):
     doc = {
         "_type": "post",
         "header": post_header,
-        "cta": get_cta(),
+        "prompt_identifier": get_prompt_identifier(),
         "draft": [
             {
                 "_type": "block",
@@ -146,7 +148,7 @@ def insert_post(post_header, post_content):
                 "children": [
                     {
                         "_type": "span",
-                        "text": post_content,
+                        "text": post_content_cta,
                     }
                 ]
             }
@@ -179,7 +181,7 @@ def query_sanity_documents(groq_query):
         "Content-Type": "application/json",
         "Authorization": f"Bearer {token}"
     }
-    response: Response = requests.get(url, params={"query": groq_query}, headers=headers)
+    response: Response = bl_twitter_utils.requests.get(url, params={"query": groq_query}, headers=headers)
     log_query_response(groq_query, response)
     if response.status_code == 200:
         return response.json()
@@ -187,7 +189,7 @@ def query_sanity_documents(groq_query):
         return response.status_code
 
 
-def log_query_response(groq_query: str, response: requests.Response) -> None:
+def log_query_response(groq_query: str, response: bl_twitter_utils.requests.Response) -> None:
     """
     Logs a query and its response status code.
 
@@ -202,8 +204,9 @@ def log_query_response(groq_query: str, response: requests.Response) -> None:
     current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     # Log the status code, URL, and content length for better clarity
+    q = f"{groq_query}"
     log_message = (
-        f"Query ran at {current_timestamp} | Query: {groq_query} | "
+        f"Query ran at {current_timestamp} | Query: {q} | "
         f"Returned Status: {response.status_code} | "
         f"Response Length: {len(response.text)}"
     )
@@ -255,6 +258,7 @@ def sanity_to_x(content):
     """
     :type content: json array with _id header body portable text approved boolean tweet_id
     """
+    print('Entered sanity_to_x function')
     doc_id = content["_id"]
     header = content['header']
     approved = content['approved']
@@ -262,14 +266,15 @@ def sanity_to_x(content):
     tweet_id = content['tweet_id']
     tweet = header + "\n\n" + body
     if not approved or tweet_id is not None:
-        print('Post was not approved or already tweeted')
+        print('Post was already tweeted')
         return 200
     else:
-        print(f" Approved post {approved} {tweet}  Tweet TBD {tweet_id} ")
-        x = post_tweet(tweet)
+        print(f" Approved post {approved}  Tweet TBD {tweet_id} \n\n")
+        x = bl_twitter_utils.post_tweet(tweet)
         tweet_id = x['data']['id']
+        print('sanity_to_x > tweet_id is: ', tweet_id, 'doc_id is: ', doc_id,"\n\n")
         update_post_tweet_status_code = update_post_tweet(doc_id, tweet_id)
-        print(f"Posting to X {tweet}  {tweet_id}  {update_post_tweet_status_code}")
+        print(f"Posting to X {tweet}  {tweet_id}  {update_post_tweet_status_code} \n\n")
         return update_post_tweet_status_code
 
 def max_cycle():
@@ -319,7 +324,7 @@ def set_cycle():
     }
 
     url = f"https://{project_id}.api.sanity.io/{api_version}/data/mutate/{dataset}"
-    response = requests.post(url, json=mutation, headers=headers)
+    response = bl_twitter_utils.requests.post(url, json=mutation, headers=headers)
     groq_query_string = f'"patch": {{"id": {doc_id}, "set": {{"round": {n}}}}}'
     log_query_response(groq_query_string, response)
     return response.status_code
@@ -332,22 +337,34 @@ def get_cycle():
     return data['result'][0]['round']
 
 
+def get_prompt_identifier():
+    # Get the latest round of the publishing cycle
+    query = f'*[_type == "cycle"]{{round}}'
+    data = query_sanity_documents(query)
+    current_cycle = data['result'][0]['round']
+    # Get the prompt.identifier for this cycle
+    query = f'*[_type == "prompt" && cycle=={current_cycle}].identifier'
+    data = query_sanity_documents(query)
+    prompt_identifier = data['result'][0]
+    return prompt_identifier
+
+
 def feedback_agent_post_stats():
     """
     Part 1 of feedback_agent - updates posts with latest tweet stats
     :return: nothing
     """
     query = '*[_type == "post" && !(_id in path("drafts.**"))] | order(header asc) { _id, tweet_id, header }'
+
     document_ids = query_sanity_documents(query)
-    print('Query returned ', len(document_ids['result']), 'published posts')
+    published_posts = len(document_ids['result'])
+    print('Query returned ', published_posts, 'published posts')
     i = 0
     for post_document in document_ids['result']:
         i += 1
-        # if i>= 3:
-        #    break
         doc_id = post_document['_id']
         tweet_id = post_document['tweet_id']
-        metrics = get_tweet_metrics(tweet_id)
+        metrics = bl_twitter_utils.get_tweet_metrics(tweet_id)
         engagement_rate = metrics['engagement_rate']
         impression_count = metrics['impression_count']
         header = post_document['header']
@@ -359,6 +376,9 @@ def feedback_agent_post_stats():
             time.sleep(15 * 60)
             continue
         time.sleep(64)  # Wait for 64s
+
+    return published_posts
+
 
 def feedback_agent_prompt_stats():
     """
@@ -398,3 +418,18 @@ def feedback_agent_prompt_stats():
             print(status_code)
         else:
             print(f"No  prompts found in posts for {identifier}")
+
+
+def feedback_agent_run():
+    current_round = get_cycle()
+    max_rounds = max_cycle()
+    if current_round == max_rounds:
+        print(f'Running the Feedback content agent at round {max_rounds}')
+        published_posts = feedback_agent_post_stats()
+        print('Feedback content agent processed ', published_posts, ' posts')
+        if published_posts is  not None:
+            feedback_agent_prompt_stats()
+    else:
+        print(f'Current round is {current_round}. Feedback content agent will run later at round {max_rounds}')
+    return True
+

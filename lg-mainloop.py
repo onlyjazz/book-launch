@@ -6,7 +6,8 @@ from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
-from bl_sanity_utils import get_system_prompt, insert_post, get_cycle, set_cycle
+from bl_sanity_utils import *
+
 
 # Rev 2 Simplified routing
 # Load environment variables from .env file
@@ -35,9 +36,8 @@ def insert_draft_into_sanity(content):
         body = content[newline_index + 1:]
     else:
         body = content
-    #print(f"Body: {body}")
-    #print('--------------------------------------------')
-    #print(f"Inserting draft: {count_words(content)} words \n Title: {title} \n Body: {body}")
+    # hack to remove markdown coded response from GPT
+    body = body.replace('*','').replace('# ','').replace('###','')
     insert_post(title, body)
     return {"status": "success", "id": "draft123"}
 
@@ -54,14 +54,16 @@ def save_content(state: State):
     """
         Insert text content into Sanity.io for review and platform distribution.
         This function uploads the content to Sanity for both Substack and X platforms.
+        It calls the Feedback agent which runs on the last round of a prompt cycle
     """
-    print ('\nRunning the Save content agent')
+    print ('\nRunning the Save content agent\n')
     response = state["messages"]
     # response contains a list of objects
     # SystemMessage := response[0].content
     # AIMessage := response[1].content
     t = response[1].content
     insert_draft_into_sanity(t)
+    feedback_agent_run()
 
 def draft_writer(state: State):
     print ('\nRunning the Draft model agent')
